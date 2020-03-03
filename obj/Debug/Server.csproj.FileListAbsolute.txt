@@ -7,3 +7,12 @@ D:\Code\Server\obj\Debug\Server.Properties.Resources.resources
 D:\Code\Server\obj\Debug\Server.csproj.GenerateResource.cache
 D:\Code\Server\obj\Debug\Server.exe
 D:\Code\Server\obj\Debug\Server.pdb
+D:\Code\GithubDesktop\bavito-server\bin\Debug\Server.exe.config
+D:\Code\GithubDesktop\bavito-server\bin\Debug\Server.exe
+D:\Code\GithubDesktop\bavito-server\bin\Debug\Server.pdb
+D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.csprojAssemblyReference.cache
+D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.Form1.resources
+D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.Properties.Resources.resources
+D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.csproj.GenerateResource.cache
+D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.exe
+D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.pdb

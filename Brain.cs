@@ -28,7 +28,15 @@ namespace Server
         public brain(Delegate msgdel)
         {
             message = msgdel;
-            message.DynamicInvoke("I am created!");
+            message.DynamicInvoke("Server created");
+        }
+        private void Answer(string responseString, HttpListenerResponse response)
+        {
+            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+            response.ContentLength64 = buffer.Length;
+            Stream output = response.OutputStream;
+            output.Write(buffer, 0, buffer.Length);
+            output.Close();
         }
         public string POSTInputStreamReader(HttpListenerRequest request)
         {
@@ -48,7 +56,6 @@ namespace Server
             s = reader.ReadToEnd();
             return s;
         }
-        //  static string connString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=\\iscsi\profiles\vorobev_g\Desktop\bavito-server-master\Database.mdf;Integrated Security=True";
         static string connString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=D:\Code\GithubDesktop\bavito-server\Database.mdf;Integrated Security=True";
         static string sqlExpression;
         public async Task Listen()
@@ -92,11 +99,7 @@ namespace Server
 </html> ";
                 }
                 message.DynamicInvoke("Отвечено");
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                response.ContentLength64 = buffer.Length;
-                Stream output = response.OutputStream;
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
+                Answer(responseString,response);
             }
         }
         public async void Main()
