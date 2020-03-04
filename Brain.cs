@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Newtonsoft.Json;
 
 namespace Server
 {
@@ -25,6 +28,8 @@ namespace Server
     class brain
     {
         Delegate message;
+        static string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=D:\Code\GithubDesktop\bavito-server\BavitoDB\Database1.mdf;Integrated Security=True;Connect Timeout=30";
+        static string sqlExpression;
         public brain(Delegate msgdel)
         {
             message = msgdel;
@@ -56,11 +61,25 @@ namespace Server
             s = reader.ReadToEnd();
             return s;
         }
-        static string connString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=D:\Code\GithubDesktop\bavito-server\Database.mdf;Integrated Security=True";
-        static string sqlExpression;
-        public async Task Listen()
+        public string Categories_loader()
         {
 
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT CategoryName FROM dbo.Category";
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                // Отображаем данные в сетке    
+                return JsonConvert.SerializeObject(ds.Tables[0]);
+            }
+        }
+        public async Task Listen()
+        {
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add("http://localhost:8888/");
             listener.Start();
@@ -83,23 +102,22 @@ namespace Server
                 }
                 else
                 {
-                    s = HttpUtility.ParseQueryString(request.Url.Query).Get("say");
-                    message.DynamicInvoke("Данные запроса GET: " + s);
-                    responseString = @" <!DOCTYPE html>
-<html>
-<head>
-<title> Title of the document </title>
-<meta charset=" + "\"UTF-8\"" + @">
-     </head>
+                    s = HttpUtility.ParseQueryString(request.Url.Query).Get("func");
+                    message.DynamicInvoke("Значение параметра func: " + s);
 
-   <body>
-<img width=" + "\"500\"" + @" src =" + "https://cdn.discordapp.com/attachments/492708867965321216/677874444395347988/-qLqvyZeWqQ.png" + @">
-   " + "Answer from server! Your GET parameter: " + s + @"</body>
-
-</html> ";
+                    var func = typeof(brain).GetMethod(s);
+                    if (func == null)
+                    {
+                        message.DynamicInvoke("Запрос несуществующего метода");
+                        responseString = "https://cdn.discordapp.com/attachments/492708867965321216/677874444395347988/-qLqvyZeWqQ.png";
+                    }
+                    else
+                    {
+                        responseString = (string)func.Invoke(this, null);
+                    }
                 }
+                Answer(responseString, response);
                 message.DynamicInvoke("Отвечено");
-                Answer(responseString,response);
             }
         }
         public async void Main()

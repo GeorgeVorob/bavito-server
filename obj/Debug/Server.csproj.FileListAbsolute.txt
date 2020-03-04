@@ -16,3 +16,6 @@ D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.Properties.Resources.resour
 D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.csproj.GenerateResource.cache
 D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.exe
 D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.pdb
+D:\Code\GithubDesktop\bavito-server\bin\Debug\Newtonsoft.Json.dll
+D:\Code\GithubDesktop\bavito-server\bin\Debug\Newtonsoft.Json.xml
+D:\Code\GithubDesktop\bavito-server\obj\Debug\Server.csproj.CopyComplete
