@@ -28,7 +28,7 @@ namespace Server
     class brain
     {
         Delegate message;
-        static string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=D:\Code\GithubDesktop\bavito-server\BavitoDB\Database1.mdf;Integrated Security=True;Connect Timeout=30";
+        static string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\bavito-server\BavitoDB\Database1.mdf;Integrated Security=True;Connect Timeout=30";
         static string sqlExpression;
         public brain(Delegate msgdel)
         {
@@ -54,7 +54,8 @@ namespace Server
                 s = "Client data content type " + request.ContentType;
                 message.DynamicInvoke(s);
             }
-            message.DynamicInvoke("Client data content length {0}", request.ContentLength64);
+            s = "Client data content length "+ request.ContentLength64.ToString();
+            message.DynamicInvoke(s);
 
             message.DynamicInvoke("Start of client data:");
             // Convert the data to a string and display it on the console.
