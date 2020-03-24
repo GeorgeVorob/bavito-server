@@ -32,7 +32,7 @@ namespace Server
         private void test(string str)
         {
             //   label1.Text += "\n"+str;
-            label1.Invoke(new Del((s) => label1.Text += s), "\n" + str);
+            textBox1.Invoke(new Del((s) => textBox1.Text += s), Environment.NewLine + str);
         }
     }
 }

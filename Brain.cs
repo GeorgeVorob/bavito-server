@@ -54,7 +54,7 @@ namespace Server
                 s = "Client data content type " + request.ContentType;
                 message.DynamicInvoke(s);
             }
-            s = "Client data content length "+ request.ContentLength64.ToString();
+            s = "Client data content length " + request.ContentLength64.ToString();
             message.DynamicInvoke(s);
 
             message.DynamicInvoke("Start of client data:");
