@@ -1,0 +1,12 @@
+D:\Code\GithubDesktop\bavito_server\bin\Debug\bavito_server.exe.config
+D:\Code\GithubDesktop\bavito_server\bin\Debug\bavito_server.exe
+D:\Code\GithubDesktop\bavito_server\bin\Debug\bavito_server.pdb
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.csprojAssemblyReference.cache
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.Properties.Resources.resources
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.csproj.GenerateResource.cache
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.csproj.CoreCompileInputs.cache
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.exe
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.pdb
+D:\Code\GithubDesktop\bavito_server\bin\Debug\Newtonsoft.Json.dll
+D:\Code\GithubDesktop\bavito_server\bin\Debug\Newtonsoft.Json.xml
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.csproj.CopyComplete
