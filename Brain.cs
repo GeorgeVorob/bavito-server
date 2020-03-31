@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -28,6 +29,9 @@ namespace bavito_server
     class brain
     {
         Delegate message;
+        string imgpath = @"..\..\Materials\Images\";
+        HttpListenerRequest request;
+        HttpListenerResponse response;
         static string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=D:\Code\GithubDesktop\bavito_server\BavitoDB\Database1.mdf;Integrated Security=True;Connect Timeout=30";
         static string sqlExpression;
         public brain(Delegate msgdel)
@@ -37,7 +41,7 @@ namespace bavito_server
         }
         private void Answer(string responseString, HttpListenerResponse response)
         {
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
             response.ContentLength64 = buffer.Length;
             Stream output = response.OutputStream;
             output.Write(buffer, 0, buffer.Length);
@@ -62,7 +66,7 @@ namespace bavito_server
             s = reader.ReadToEnd();
             return s;
         }
-        public string Categories_loader()
+        public void Categories_loader()
         {
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -76,8 +80,35 @@ namespace bavito_server
                 // Заполняем Dataset
                 adapter.Fill(ds);
                 // Отображаем данные в сетке    
-                return JsonConvert.SerializeObject(ds.Tables[0]);
+                Answer(JsonConvert.SerializeObject(ds.Tables[0]),response);
             }
+        }
+        public void Signs_loader() 
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT * FROM dbo.Sign";
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                // Отображаем данные в сетке    
+                Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+            }
+        }
+        public void Image_load()
+        {
+            response.ContentType = "image/jpg";
+            string imgid = HttpUtility.ParseQueryString(request.Url.Query).Get("imgid");
+            string img = imgpath + imgid + ".jpg";
+            Byte[] bytes = File.ReadAllBytes(img);
+            response.ContentLength64 = bytes.Length;
+            Stream output = response.OutputStream;
+            output.Write(bytes, 0, bytes.Length);
+            output.Close();
         }
         public async Task Listen()
         {
@@ -86,15 +117,15 @@ namespace bavito_server
                 listener.Start();
                 message.DynamicInvoke("Ожидание подключений...");
 
-            while (true)
+                while (true)
             {
                 try
                 {
                     string s = "";
                     string responseString = "";
                     HttpListenerContext context = await listener.GetContextAsync();
-                    HttpListenerRequest request = context.Request;
-                    HttpListenerResponse response = context.Response;
+                    request = context.Request;
+                    response = context.Response;
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
 
                     if (request.HttpMethod == "POST")
@@ -111,14 +142,15 @@ namespace bavito_server
                         if (func == null)
                         {
                             message.DynamicInvoke("Запрос несуществующего метода");
-                            responseString = "https://cdn.discordapp.com/attachments/492708867965321216/677874444395347988/-qLqvyZeWqQ.png";
+                            responseString = "https://cdn.discordapp.com/attachments/492708867965321216/677874444395347988/-qLqvyZeWqQ.jpg";
                         }
                         else
                         {
-                            responseString = (string)func.Invoke(this, null);
+                            //responseString = (string)func.Invoke(this, null);
+                            func.Invoke(this, null);
                         }
                     }
-                    Answer(responseString, response);
+                    //Answer(responseString, response);
                     message.DynamicInvoke("Отвечено");
                 }
                 catch (Exception e)
