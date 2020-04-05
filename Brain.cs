@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
@@ -109,6 +110,26 @@ namespace bavito_server
             Stream output = response.OutputStream;
             output.Write(bytes, 0, bytes.Length);
             output.Close();
+        }
+        public void Login_check()
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") + 
+                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password")+"'";
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                if(ds.Tables[0].Rows[0].Field<int>("counter")>=1)
+                Answer("true", response);
+                else
+                Answer("false", response);
+            }
         }
         public async Task Listen()
         {
