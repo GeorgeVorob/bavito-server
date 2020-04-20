@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -131,6 +132,32 @@ namespace bavito_server
                 Answer("false", response);
             }
         }
+        public void Registration()
+        {
+            string input = POSTInputStreamReader(request);
+            Account account = JsonConvert.DeserializeObject<Account>(input);
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT count(*) as counter from dbo.[User] WHERE Login='" + account.Login + "'";
+                connection.Open();
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds);
+                if (ds.Tables[0].Rows[0].Field<int>("counter") >= 1)
+                {
+                    response.StatusCode = 400; //bad
+                    Answer("", response);
+                }
+                else
+                {
+                    response.StatusCode = 200; //good
+                    Answer("", response);
+                    sql = "insert into dbo.[User] values ('" + account.Login + "','" + account.Password + "','" + account.FIO + "','" + account.Email + "','" + account.Adress + "','" + account.Phone + "','0','" + DateTime.Now.ToString("yyyy-MM-dd") + "')";
+                    SqlCommand command = new SqlCommand(sql,connection);
+                    command.ExecuteNonQuery();
+                }
+            }
+            }
         public async Task Listen()
         {
                 HttpListener listener = new HttpListener();
@@ -139,46 +166,38 @@ namespace bavito_server
                 message.DynamicInvoke("Ожидание подключений...");
 
                 while (true)
-            {
-                try
                 {
-                    string s = "";
-                    string responseString = "";
-                    HttpListenerContext context = await listener.GetContextAsync();
-                    request = context.Request;
-                    response = context.Response;
-                    response.Headers.Add("Access-Control-Allow-Origin", "*");
-
-                    if (request.HttpMethod == "POST")
+                    try
                     {
-                        s = POSTInputStreamReader(request);
-                        message.DynamicInvoke("Данные запроса POST: " + s);
-                        responseString = "Ответ от сервера! Был написан POST параметр: " + s;
+                        string s = "";
+                        string responseString = "";
+                        HttpListenerContext context = await listener.GetContextAsync();
+                        request = context.Request;
+                        response = context.Response;
+                        response.Headers.Add("Access-Control-Allow-Origin", "*");
+                            s = HttpUtility.ParseQueryString(request.Url.Query).Get("func");
+                            message.DynamicInvoke("Значение параметра func: " + s);
+                    if (request.HttpMethod == "OPTIONS")
+                        Answer("yes",response);
+                            var func = typeof(brain).GetMethod(s);
+                            if (func == null)
+                            {
+                                message.DynamicInvoke("Запрос несуществующего метода");
+                                responseString = "https://cdn.discordapp.com/attachments/492708867965321216/677874444395347988/-qLqvyZeWqQ.jpg";
+                            }
+                            else
+                            {
+                                //responseString = (string)func.Invoke(this, null);
+                                func.Invoke(this, null);
+                            }
+                        //Answer(responseString, response);
+                        message.DynamicInvoke("Отвечено");
                     }
-                    else
+                    catch (Exception e)
                     {
-                        s = HttpUtility.ParseQueryString(request.Url.Query).Get("func");
-                        message.DynamicInvoke("Значение параметра func: " + s);
-                        var func = typeof(brain).GetMethod(s);
-                        if (func == null)
-                        {
-                            message.DynamicInvoke("Запрос несуществующего метода");
-                            responseString = "https://cdn.discordapp.com/attachments/492708867965321216/677874444395347988/-qLqvyZeWqQ.jpg";
-                        }
-                        else
-                        {
-                            //responseString = (string)func.Invoke(this, null);
-                            func.Invoke(this, null);
-                        }
+                        message.DynamicInvoke("Ошибка:" + e.Message);
                     }
-                    //Answer(responseString, response);
-                    message.DynamicInvoke("Отвечено");
                 }
-                catch (Exception e)
-                {
-                    message.DynamicInvoke("Ошибка:" + e.Message);
-                }
-            }
         }
         public async void Main()
         {
