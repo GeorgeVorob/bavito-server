@@ -101,6 +101,22 @@ namespace bavito_server
                 Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
             }
         }
+        public void Sign_load()
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT * FROM dbo.Sign WHERE Id="+ HttpUtility.ParseQueryString(request.Url.Query).Get("signid").ToString();
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                // Отображаем данные в сетке    
+                Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+            }
+        }
         public void Image_load()
         {
             response.ContentType = "image/jpg";
@@ -111,6 +127,7 @@ namespace bavito_server
             Stream output = response.OutputStream;
             output.Write(bytes, 0, bytes.Length);
             output.Close();
+
         }
         public void Login_check()
         {
@@ -130,6 +147,32 @@ namespace bavito_server
                 Answer("true", response);
                 else
                 Answer("false", response);
+            }
+        }
+        public void Get_User_Data()
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT * FROM dbo.[User] " +
+                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    response.StatusCode = 200;
+                    Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                }
+                else
+                {
+                    response.StatusCode = 400;
+                    Answer("Неверные логин или пароль", response);
+                }
             }
         }
         public void Registration()
