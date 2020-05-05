@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -119,15 +120,21 @@ namespace bavito_server
         }
         public void Image_load()
         {
-            response.ContentType = "image/jpg";
-            string imgid = HttpUtility.ParseQueryString(request.Url.Query).Get("imgid");
-            string img = imgpath + imgid + ".jpg";
-            Byte[] bytes = File.ReadAllBytes(img);
-            response.ContentLength64 = bytes.Length;
-            Stream output = response.OutputStream;
-            output.Write(bytes, 0, bytes.Length);
-            output.Close();
-
+            try
+            {
+                response.ContentType = "image/jpg";
+                string imgid = HttpUtility.ParseQueryString(request.Url.Query).Get("imgid");
+                string img = imgpath + imgid + ".jpg";
+                Byte[] bytes = File.ReadAllBytes(img);
+                response.ContentLength64 = bytes.Length;
+                Stream output = response.OutputStream;
+                output.Write(bytes, 0, bytes.Length);
+                output.Close();
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
+            }
         }
         public void Login_check()
         {
@@ -201,6 +208,38 @@ namespace bavito_server
                 }
             }
             }
+        public void Sign_Update()
+        {
+            string input = POSTInputStreamReader(request);
+            SignUpdate signupdate = JsonConvert.DeserializeObject<SignUpdate>(input);
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                {
+                    response.StatusCode = 400;
+                    Answer("Неверный логин или пароль", response);
+                    return;
+                }
+                string updatingid = HttpUtility.ParseQueryString(request.Url.Query).Get("signid");
+                sql = "EXEC UpdateSign N'" + signupdate.GetParam("Name") + "', N'" + signupdate.GetParam("Category") + "', N'" + signupdate.GetParam("Adress") + "', " + signupdate.GetParam("Price") + ", " + updatingid.ToString() + "";
+                SqlCommand command = new SqlCommand(sql, connection);
+                string test = signupdate.GetParam("Category");
+                command.ExecuteNonQuery();
+                response.StatusCode = 200; //good
+                Answer("Данные обновлены", response);
+            }
+
+        }
         public async Task Listen()
         {
                 HttpListener listener = new HttpListener();
