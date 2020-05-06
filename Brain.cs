@@ -143,6 +143,8 @@ namespace bavito_server
                 string sql = "SELECT count(*) as counter FROM dbo.[User] " +
                 "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") + 
                 "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password")+"'";
+                message.DynamicInvoke("Логин:"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login"));
+                message.DynamicInvoke("Пароль:" + HttpUtility.ParseQueryString(request.Url.Query).Get("password"));
                 connection.Open();
                 // Создаем объект DataAdapter
                 SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
@@ -237,6 +239,38 @@ namespace bavito_server
                 command.ExecuteNonQuery();
                 response.StatusCode = 200; //good
                 Answer("Данные обновлены", response);
+            }
+
+        }
+        public void Add_Sign()
+        {
+            string input = POSTInputStreamReader(request);
+            SignUpdate NewSign = JsonConvert.DeserializeObject<SignUpdate>(input);
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                {
+                    response.StatusCode = 400;
+                    Answer("Неверный логин или пароль", response);
+                    return;
+                }
+                string updatingid = HttpUtility.ParseQueryString(request.Url.Query).Get("signid");
+                sql = "INSERT INTO Sign VALUES(N'" + NewSign.GetParam("Name") + "', N'" + NewSign.GetParam("Category") + "', '" + DateTime.Now.ToString("yyyy-MM-dd") + "', N'" + NewSign.GetParam("Adress") + "', 0, "+NewSign.GetParam("Price")+", '"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login") + "','Active')";
+                SqlCommand command = new SqlCommand(sql, connection);
+                string test = NewSign.GetParam("Category");
+                command.ExecuteNonQuery();
+                response.StatusCode = 200; //good
+                Answer("Объявление добавлено", response);
             }
 
         }
