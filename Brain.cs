@@ -88,18 +88,37 @@ namespace bavito_server
         }
         public void Signs_loader() 
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT * FROM dbo.Sign";
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                // Отображаем данные в сетке    
-                Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    string sql;
+                    if (HttpUtility.ParseQueryString(request.Url.Query).Get("isexpanded") == "true")
+                    {
+                        string input = POSTInputStreamReader(request);
+                        SearchInput searchinput = new SearchInput();
+                        searchinput = JsonConvert.DeserializeObject<SearchInput>(input);
+                        sql = "SELECT * FROM dbo.Sign WHERE Name LIKE(N'%" + searchinput.GetParam("Name") + "%') AND Category LIKE N'" + (searchinput.GetParam("Category") ?? "%") + "' AND Date BETWEEN '" + (searchinput.Datefrom ?? "2019-01-01") + "' AND '" + (searchinput.Dateto ?? DateTime.Now.ToString("yyyy-MM-dd")) + "' AND Price BETWEEN " + (searchinput.Pricefrom ?? "0") + " AND " + (searchinput.Priceto ?? "999999999999") + "";
+                    }
+                    else
+                    {
+                        string name = HttpUtility.ParseQueryString(request.Url.Query).Get("name");
+                        sql = "SELECT * FROM dbo.Sign WHERE Name LIKE(N'%" + name + "%')";
+                    }
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    // Отображаем данные в сетке    
+                    Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                }
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
             }
         }
         public void Sign_load()

@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace bavito_server
 {
-    class SignUpdate
+    class SearchInput
     {
         public string Name;
         public string Category;
-        public string Adress;
-        public string Price;
+        public string Datefrom;
+        public string Dateto;
+        public string Pricefrom;
+        public string Priceto;
         public string GetParam(string ParamName)
         {
             try
@@ -27,5 +29,4 @@ namespace bavito_server
             }
         }
     }
-
 }
