@@ -16,7 +16,7 @@ namespace bavito_server
         {
             try
             {
-                string value = (string)typeof(SearchInput).GetField(ParamName).GetValue(this);
+                string value = (string)typeof(SignUpdate).GetField(ParamName).GetValue(this);
                 byte[] bytes = Encoding.Default.GetBytes(value);
                 value = Encoding.UTF8.GetString(bytes);
                 return value;
