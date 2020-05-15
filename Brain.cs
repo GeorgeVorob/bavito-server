@@ -217,12 +217,12 @@ namespace bavito_server
                 if (ds.Tables[0].Rows[0].Field<int>("counter") >= 1)
                 {
                     response.StatusCode = 400; //bad
-                    Answer("", response);
+                    Answer("Такой логин уже существует", response);
                 }
                 else
                 {
                     response.StatusCode = 200; //good
-                    Answer("", response);
+                    Answer("Регистрация успешна", response);
                     sql = "insert into dbo.[User] values ('" + account.Login + "','" + account.Password + "','" + account.FIO + "','" + account.Email + "','" + account.Adress + "','" + account.Phone + "','0','" + DateTime.Now.ToString("yyyy-MM-dd") + "')";
                     SqlCommand command = new SqlCommand(sql,connection);
                     command.ExecuteNonQuery();
