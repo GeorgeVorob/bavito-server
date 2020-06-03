@@ -12,6 +12,7 @@ namespace bavito_server
         public string Category;
         public string Adress;
         public string Price;
+        public string Base64image;
         public string GetParam(string ParamName)
         {
             try

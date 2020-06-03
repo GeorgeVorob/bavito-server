@@ -283,11 +283,17 @@ namespace bavito_server
                     Answer("Неверный логин или пароль", response);
                     return;
                 }
-                string updatingid = HttpUtility.ParseQueryString(request.Url.Query).Get("signid");
-                sql = "INSERT INTO Sign VALUES(N'" + NewSign.GetParam("Name") + "', N'" + NewSign.GetParam("Category") + "', '" + DateTime.Now.ToString("yyyy-MM-dd") + "', N'" + NewSign.GetParam("Adress") + "', 0, "+NewSign.GetParam("Price")+", '"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login") + "','Active')";
+                //string updatingid = HttpUtility.ParseQueryString(request.Url.Query).Get("signid");
+                sql = "INSERT INTO Sign VALUES(N'" + NewSign.GetParam("Name") + "', N'" + NewSign.GetParam("Category") + "', '" + DateTime.Now.ToString("yyyy-MM-dd") + "', N'" + NewSign.GetParam("Adress") + "', 0, "+NewSign.GetParam("Price")+", '"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login") + "','Active'); select scope_identity()";
                 SqlCommand command = new SqlCommand(sql, connection);
                 string test = NewSign.GetParam("Category");
-                command.ExecuteNonQuery();
+                var addingid = command.ExecuteScalar();
+                if(NewSign.Base64image!=null)
+                {
+                    sql = "select scope_identity()";
+                    string pureimage = NewSign.Base64image.Substring(NewSign.Base64image.IndexOf(',') + 1);
+                    File.WriteAllBytes(imgpath+addingid.ToString()+".jpg", Convert.FromBase64String(pureimage));
+                }
                 response.StatusCode = 200; //good
                 Answer("Объявление добавлено", response);
             }
