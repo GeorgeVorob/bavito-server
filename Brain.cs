@@ -181,9 +181,9 @@ namespace bavito_server
         {
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                string sql = "SELECT * FROM dbo.[User] " +
+                string sql = "SELECT Login, FIO, 'E-mail', Adress, Phone, Rating, RegDate FROM dbo.[User] " +
                 "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
-                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                "'";
                 connection.Open();
                 // Создаем объект DataAdapter
                 SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
@@ -261,6 +261,48 @@ namespace bavito_server
             }
 
         }
+        public void SignDelete()
+        {
+            string input = POSTInputStreamReader(request);
+            SignUpdate signupdate = JsonConvert.DeserializeObject<SignUpdate>(input);
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                connection.Open();
+                // Создаем объект DataAdapter
+                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                // Создаем объект Dataset
+                DataSet ds = new DataSet();
+                // Заполняем Dataset
+                adapter.Fill(ds);
+                if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                {
+                    response.StatusCode = 400;
+                    Answer("Неверный логин или пароль", response);
+                    return;
+                }
+                sql = "SELECT count(*) from dbo.Sign WHERE Author='"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login")+
+                    "' AND Id="+ HttpUtility.ParseQueryString(request.Url.Query).Get("id");
+                SqlCommand command = new SqlCommand(sql, connection);
+                if(command.ExecuteScalar().ToString()=="1")
+                {
+                    sql = "DELETE FROM dbo.[Sign] "+"WHERE id="+ HttpUtility.ParseQueryString(request.Url.Query).Get("id");
+                    command = new SqlCommand(sql, connection);
+                    command.ExecuteNonQuery();
+                }
+                else 
+                {
+                    response.StatusCode = 400;
+                    Answer("Это объявление не ваше", response);
+                    return;
+                }
+                response.StatusCode = 200; //good
+                Answer("Запись удалена", response);
+            }
+
+            }
         public void Add_Sign()
         {
             string input = POSTInputStreamReader(request);
