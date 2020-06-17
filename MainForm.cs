@@ -34,17 +34,5 @@ namespace bavito_server
             //   label1.Text += "\n"+str;
             textBox1.Invoke(new Del((s) => textBox1.Text += s), Environment.NewLine + str+ Environment.NewLine +"------------------------------------------------------");
         }
-
-        private void SignButton_Click(object sender, EventArgs e)
-        {
-            SignForm newform = new SignForm();
-            newform.Show();
-            this.Hide();
-        }
-
-        private void UserButton_Click(object sender, EventArgs e)
-        {
-
-        }
     }
 }

@@ -10,3 +10,4 @@ D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.pdb
 D:\Code\GithubDesktop\bavito_server\bin\Debug\Newtonsoft.Json.dll
 D:\Code\GithubDesktop\bavito_server\bin\Debug\Newtonsoft.Json.xml
 D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.csproj.CopyComplete
+D:\Code\GithubDesktop\bavito_server\obj\Debug\bavito_server.MainForm.resources

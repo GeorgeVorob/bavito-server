@@ -1,34 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 
 namespace bavito_server
 {
-    //class brain
-    //{
-    //    Delegate message;
-    //    public brain(Delegate msgdel) 
-    //    {
-    //        message = msgdel;
-    //        message.DynamicInvoke("I am created!");
-    //    }
-    //    public void think() 
-    //    {
-    //        message.DynamicInvoke("I am thinking!");
-    //    }
-    //}
+    
     class brain
     {
         Delegate message;
@@ -44,46 +26,67 @@ namespace bavito_server
         }
         private void Answer(string responseString, HttpListenerResponse response)
         {
-            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-            response.ContentLength64 = buffer.Length;
-            Stream output = response.OutputStream;
-            output.Write(buffer, 0, buffer.Length);
-            output.Close();
+            try
+            {
+                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+                response.ContentLength64 = buffer.Length;
+                Stream output = response.OutputStream;
+                output.Write(buffer, 0, buffer.Length);
+                output.Close();
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
+            }
         }
         public string POSTInputStreamReader(HttpListenerRequest request)
         {
-            string s = "";
-            System.IO.Stream body = request.InputStream;
-            System.Text.Encoding encoding = request.ContentEncoding;
-            System.IO.StreamReader reader = new System.IO.StreamReader(body, encoding);
-            if (request.ContentType != null)
+            try
             {
-                s = "Client data content type " + request.ContentType;
+                string s = "";
+                System.IO.Stream body = request.InputStream;
+                System.Text.Encoding encoding = request.ContentEncoding;
+                System.IO.StreamReader reader = new System.IO.StreamReader(body, encoding);
+                if (request.ContentType != null)
+                {
+                    s = "Client data content type " + request.ContentType;
+                    message.DynamicInvoke(s);
+                }
+                s = "Client data content length " + request.ContentLength64.ToString();
                 message.DynamicInvoke(s);
-            }
-            s = "Client data content length " + request.ContentLength64.ToString();
-            message.DynamicInvoke(s);
 
-            message.DynamicInvoke("Start of client data:");
-            // Convert the data to a string and display it on the console.
-            s = reader.ReadToEnd();
-            return s;
+                message.DynamicInvoke("Start of client data:");
+                // Convert the data to a string and display it on the console.
+                s = reader.ReadToEnd();
+                return s;
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
+                return "";
+            }
         }
         public void Categories_loader()
         {
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT CategoryName FROM dbo.Category";
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                // Отображаем данные в сетке    
-                Answer(JsonConvert.SerializeObject(ds.Tables[0]),response);
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    string sql = "SELECT CategoryName FROM dbo.Category";
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    // Отображаем данные в сетке    
+                    Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                }
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
             }
         }
         public void Signs_loader() 
@@ -123,18 +126,25 @@ namespace bavito_server
         }
         public void Sign_load()
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT * FROM dbo.Sign WHERE Id="+ HttpUtility.ParseQueryString(request.Url.Query).Get("signid").ToString();
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                // Отображаем данные в сетке    
-                Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    string sql = "SELECT * FROM dbo.Sign WHERE Id=" + HttpUtility.ParseQueryString(request.Url.Query).Get("signid").ToString();
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    // Отображаем данные в сетке    
+                    Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                }
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
             }
         }
         public void Image_load()
@@ -157,189 +167,229 @@ namespace bavito_server
         }
         public void Login_check()
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
-                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") + 
-                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password")+"'";
-                message.DynamicInvoke("Логин:"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login"));
-                message.DynamicInvoke("Пароль:" + HttpUtility.ParseQueryString(request.Url.Query).Get("password"));
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                if(ds.Tables[0].Rows[0].Field<int>("counter")>=1)
-                Answer("true", response);
-                else
-                Answer("false", response);
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                    "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                    "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                    message.DynamicInvoke("Логин:" + HttpUtility.ParseQueryString(request.Url.Query).Get("login"));
+                    message.DynamicInvoke("Пароль:" + HttpUtility.ParseQueryString(request.Url.Query).Get("password"));
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    if (ds.Tables[0].Rows[0].Field<int>("counter") >= 1)
+                        Answer("true", response);
+                    else
+                        Answer("false", response);
+                }
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
             }
         }
         public void Get_User_Data()
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT Login, FIO, 'E-mail', Adress, Phone, Rating, RegDate FROM dbo.[User] " +
-                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
-                "'";
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                if (ds.Tables[0].Rows.Count > 0)
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    response.StatusCode = 200;
-                    Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                    string sql = "SELECT Login, FIO, 'E-mail', Adress, Phone, Rating, RegDate FROM dbo.[User] " +
+                    "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                    "'";
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        response.StatusCode = 200;
+                        Answer(JsonConvert.SerializeObject(ds.Tables[0]), response);
+                    }
+                    else
+                    {
+                        response.StatusCode = 400;
+                        Answer("Неверные логин или пароль", response);
+                    }
                 }
-                else
-                {
-                    response.StatusCode = 400;
-                    Answer("Неверные логин или пароль", response);
-                }
+            }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
             }
         }
         public void Registration()
         {
-            string input = POSTInputStreamReader(request);
-            Account account = JsonConvert.DeserializeObject<Account>(input);
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT count(*) as counter from dbo.[User] WHERE Login='" + account.Login + "'";
-                connection.Open();
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                DataSet ds = new DataSet();
-                adapter.Fill(ds);
-                if (ds.Tables[0].Rows[0].Field<int>("counter") >= 1)
+                string input = POSTInputStreamReader(request);
+                Account account = JsonConvert.DeserializeObject<Account>(input);
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    response.StatusCode = 400; //bad
-                    Answer("Такой логин уже существует", response);
-                }
-                else
-                {
-                    response.StatusCode = 200; //good
-                    Answer("Регистрация успешна", response);
-                    sql = "insert into dbo.[User] values ('" + account.Login + "','" + account.Password + "','" + account.FIO + "','" + account.Email + "','" + account.Adress + "','" + account.Phone + "','0','" + DateTime.Now.ToString("yyyy-MM-dd") + "')";
-                    SqlCommand command = new SqlCommand(sql,connection);
-                    command.ExecuteNonQuery();
+                    string sql = "SELECT count(*) as counter from dbo.[User] WHERE Login='" + account.Login + "'";
+                    connection.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    DataSet ds = new DataSet();
+                    adapter.Fill(ds);
+                    if (ds.Tables[0].Rows[0].Field<int>("counter") >= 1)
+                    {
+                        response.StatusCode = 400; //bad
+                        Answer("Такой логин уже существует", response);
+                    }
+                    else
+                    {
+                        response.StatusCode = 200; //good
+                        Answer("Регистрация успешна", response);
+                        sql = "insert into dbo.[User] values ('" + account.Login + "','" + account.Password + "','" + account.FIO + "','" + account.Email + "','" + account.Adress + "','" + account.Phone + "','0','" + DateTime.Now.ToString("yyyy-MM-dd") + "')";
+                        SqlCommand command = new SqlCommand(sql, connection);
+                        command.ExecuteNonQuery();
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
             }
+        }
         public void Sign_Update()
         {
-            string input = POSTInputStreamReader(request);
-            SignUpdate signupdate = JsonConvert.DeserializeObject<SignUpdate>(input);
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
-                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
-                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                string input = POSTInputStreamReader(request);
+                SignUpdate signupdate = JsonConvert.DeserializeObject<SignUpdate>(input);
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    response.StatusCode = 400;
-                    Answer("Неверный логин или пароль", response);
-                    return;
+                    string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                    "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                    "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                    {
+                        response.StatusCode = 400;
+                        Answer("Неверный логин или пароль", response);
+                        return;
+                    }
+                    string updatingid = HttpUtility.ParseQueryString(request.Url.Query).Get("signid");
+                    sql = "EXEC UpdateSign N'" + signupdate.GetParam("Name") + "', N'" + signupdate.GetParam("Category") + "', N'" + signupdate.GetParam("Adress") + "', " + signupdate.GetParam("Price") + ", " + updatingid.ToString() + "";
+                    SqlCommand command = new SqlCommand(sql, connection);
+                    string test = signupdate.GetParam("Category");
+                    command.ExecuteNonQuery();
+                    response.StatusCode = 200; //good
+                    Answer("Данные обновлены", response);
                 }
-                string updatingid = HttpUtility.ParseQueryString(request.Url.Query).Get("signid");
-                sql = "EXEC UpdateSign N'" + signupdate.GetParam("Name") + "', N'" + signupdate.GetParam("Category") + "', N'" + signupdate.GetParam("Adress") + "', " + signupdate.GetParam("Price") + ", " + updatingid.ToString() + "";
-                SqlCommand command = new SqlCommand(sql, connection);
-                string test = signupdate.GetParam("Category");
-                command.ExecuteNonQuery();
-                response.StatusCode = 200; //good
-                Answer("Данные обновлены", response);
             }
-
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
+            }
         }
         public void SignDelete()
         {
-            string input = POSTInputStreamReader(request);
-            SignUpdate signupdate = JsonConvert.DeserializeObject<SignUpdate>(input);
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
-                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
-                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                string input = POSTInputStreamReader(request);
+                SignUpdate signupdate = JsonConvert.DeserializeObject<SignUpdate>(input);
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    response.StatusCode = 400;
-                    Answer("Неверный логин или пароль", response);
-                    return;
+                    string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                    "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                    "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                    {
+                        response.StatusCode = 400;
+                        Answer("Неверный логин или пароль", response);
+                        return;
+                    }
+                    sql = "SELECT count(*) from dbo.Sign WHERE Author='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                        "' AND Id=" + HttpUtility.ParseQueryString(request.Url.Query).Get("id");
+                    SqlCommand command = new SqlCommand(sql, connection);
+                    if (command.ExecuteScalar().ToString() == "1")
+                    {
+                        sql = "DELETE FROM dbo.[Sign] " + "WHERE id=" + HttpUtility.ParseQueryString(request.Url.Query).Get("id");
+                        command = new SqlCommand(sql, connection);
+                        command.ExecuteNonQuery();
+                    }
+                    else
+                    {
+                        response.StatusCode = 400;
+                        Answer("Это объявление не ваше", response);
+                        return;
+                    }
+                    response.StatusCode = 200; //good
+                    Answer("Запись удалена", response);
                 }
-                sql = "SELECT count(*) from dbo.Sign WHERE Author='"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login")+
-                    "' AND Id="+ HttpUtility.ParseQueryString(request.Url.Query).Get("id");
-                SqlCommand command = new SqlCommand(sql, connection);
-                if(command.ExecuteScalar().ToString()=="1")
-                {
-                    sql = "DELETE FROM dbo.[Sign] "+"WHERE id="+ HttpUtility.ParseQueryString(request.Url.Query).Get("id");
-                    command = new SqlCommand(sql, connection);
-                    command.ExecuteNonQuery();
-                }
-                else 
-                {
-                    response.StatusCode = 400;
-                    Answer("Это объявление не ваше", response);
-                    return;
-                }
-                response.StatusCode = 200; //good
-                Answer("Запись удалена", response);
             }
-
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
             }
+        }
         public void Add_Sign()
         {
-            string input = POSTInputStreamReader(request);
-            SignUpdate NewSign = JsonConvert.DeserializeObject<SignUpdate>(input);
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                string sql = "SELECT count(*) as counter FROM dbo.[User] " +
-                "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
-                "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
-                connection.Open();
-                // Создаем объект DataAdapter
-                SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
-                // Создаем объект Dataset
-                DataSet ds = new DataSet();
-                // Заполняем Dataset
-                adapter.Fill(ds);
-                if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                string input = POSTInputStreamReader(request);
+                SignUpdate NewSign = JsonConvert.DeserializeObject<SignUpdate>(input);
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    response.StatusCode = 400;
-                    Answer("Неверный логин или пароль", response);
-                    return;
+                    string sql = "SELECT count(*) as counter FROM dbo.[User] " +
+                    "WHERE Login='" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") +
+                    "' AND Password='" + HttpUtility.ParseQueryString(request.Url.Query).Get("password") + "'";
+                    connection.Open();
+                    // Создаем объект DataAdapter
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+                    // Создаем объект Dataset
+                    DataSet ds = new DataSet();
+                    // Заполняем Dataset
+                    adapter.Fill(ds);
+                    if (ds.Tables[0].Rows[0].Field<int>("counter") < 1)
+                    {
+                        response.StatusCode = 400;
+                        Answer("Неверный логин или пароль", response);
+                        return;
+                    }
+                    sql = "INSERT INTO Sign VALUES(N'" + NewSign.GetParam("Name") + "', N'" + NewSign.GetParam("Category") +
+                        "', '" + DateTime.Now.ToString("yyyy-MM-dd") + "', N'" + NewSign.GetParam("Adress") + "', 0, " + NewSign.GetParam("Price") +
+                        ", '" + HttpUtility.ParseQueryString(request.Url.Query).Get("login") + "','Active'); select scope_identity()";
+                    SqlCommand command = new SqlCommand(sql, connection);
+                    string test = NewSign.GetParam("Category");
+                    var addingid = command.ExecuteScalar();
+                    if (NewSign.Base64image != null)
+                    {
+                        sql = "select scope_identity()";
+                        string pureimage = NewSign.Base64image.Substring(NewSign.Base64image.IndexOf(',') + 1);
+                        File.WriteAllBytes(imgpath + addingid.ToString() + ".jpg", Convert.FromBase64String(pureimage));
+                    }
+                    response.StatusCode = 200; //good
+                    Answer("Объявление добавлено", response);
                 }
-                //string updatingid = HttpUtility.ParseQueryString(request.Url.Query).Get("signid");
-                sql = "INSERT INTO Sign VALUES(N'" + NewSign.GetParam("Name") + "', N'" + NewSign.GetParam("Category") + "', '" + DateTime.Now.ToString("yyyy-MM-dd") + "', N'" + NewSign.GetParam("Adress") + "', 0, "+NewSign.GetParam("Price")+", '"+ HttpUtility.ParseQueryString(request.Url.Query).Get("login") + "','Active'); select scope_identity()";
-                SqlCommand command = new SqlCommand(sql, connection);
-                string test = NewSign.GetParam("Category");
-                var addingid = command.ExecuteScalar();
-                if(NewSign.Base64image!=null)
-                {
-                    sql = "select scope_identity()";
-                    string pureimage = NewSign.Base64image.Substring(NewSign.Base64image.IndexOf(',') + 1);
-                    File.WriteAllBytes(imgpath+addingid.ToString()+".jpg", Convert.FromBase64String(pureimage));
-                }
-                response.StatusCode = 200; //good
-                Answer("Объявление добавлено", response);
             }
-
+            catch (Exception e)
+            {
+                message.DynamicInvoke("Ошибка:" + e.Message);
+            }
         }
         public async Task Listen()
         {
